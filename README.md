@@ -6,9 +6,9 @@ Inclui frontend moderno, backend robusto e banco de dados relacional seguro.
 ---
 
 ## 📂 Estrutura do Projeto
-frontend/ → Aplicação Next.js (UI + UX)
-backend/ → API Node.js com Express
-infra/ → Configurações de deploy e documentação
+frontend/ → Aplicação Next.js (UI + UX); 
+backend/ → API Node.js com Express;
+infra/ → Configurações de deploy e documentação;
 
 ## 🔧 Subir os Serviços Localmente
 
