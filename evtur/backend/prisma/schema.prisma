@@ -1,0 +1,210 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  email         String   @unique
+  senha         String
+  posts         Post[]
+  // Tarefas criadas por este usuário
+  createdTasks  Task[] @relation("TaskCreator")
+  // Tarefas atribuídas a este usuário
+  assignedTasks TaskAssignee[] @relation("TaskAssignee")
+  comments      PostComment[]
+  reactions     PostReaction[]
+  taskComments  TaskComment[]
+  subTaskComments SubTaskComment[]
+  // Checkpoints criados por este usuário
+  createdCheckpoints Checkpoint[] @relation("CheckpointCreator")
+  // Aprovações de checkpoints por este usuário
+  checkpointApprovals CheckpointApproval[]
+  // Lições aprendidas criadas por este usuário
+  createdLessons TaskLesson[] @relation("LessonCreator")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  conteudo  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  comments  PostComment[]
+  reactions PostReaction[]
+}
+
+model PostComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  userName  String?
+}
+
+model PostReaction {
+  id        Int      @id @default(autoincrement())
+  type      String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  @@unique([postId, userId, type])
+}
+
+model Task {
+  id            Int      @id @default(autoincrement())
+  titulo        String
+  descricao     String
+  status        String   @default("pendente")
+  prioridade    String   @default("media")
+  prazo         DateTime?
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+  // Relação com o usuário que criou a tarefa
+  creator       User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  creatorId     Int
+  // Relação com múltiplos usuários para quem a tarefa foi criada
+  assignees     TaskAssignee[]
+  // Relação com comentários (se houver)
+  comments      TaskComment[]
+  // Relação com sub-tarefas
+  subtasks      SubTask[]
+  // Relação com checkpoints
+  checkpoints   Checkpoint[]
+  // Relação com histórico de mudanças
+  history       TaskHistory[]
+  // Relação com lições aprendidas
+  lessons       TaskLesson[]
+}
+
+// Nova tabela para relacionar tarefas com múltiplos destinatários
+model TaskAssignee {
+  id         Int      @id @default(autoincrement())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId     Int
+  user       User     @relation("TaskAssignee", fields: [userId], references: [id])
+  userId     Int
+  assignedAt DateTime @default(now())
+  @@unique([taskId, userId])
+}
+
+model TaskComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  userName  String?
+}
+
+// Modelo para sub-tarefas (microetapas)
+model SubTask {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descricao   String?
+  status      String   @default("pendente")
+  ordem       Int      @default(0)
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      Int
+  comments    SubTaskComment[]
+}
+
+// Comentários para sub-tarefas
+model SubTaskComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  subTask   SubTask  @relation(fields: [subTaskId], references: [id], onDelete: Cascade)
+  subTaskId Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  userName  String?
+}
+
+// Modelo para checkpoints de revisão
+model Checkpoint {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descricao   String?
+  prazo       DateTime?
+  tipo        String   @default("manual") // manual, automatico
+  status      String   @default("pendente") // pendente, aprovado, reprovado
+  createdAt   DateTime @default(now())
+  // Relação com a tarefa
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      Int
+  // Relação com o usuário que criou o checkpoint
+  criadoPor   User     @relation("CheckpointCreator", fields: [criadoPor], references: [id])
+  // Relação com as aprovações
+  aprovacoes  CheckpointApproval[]
+}
+
+// Modelo para aprovações de checkpoints
+model CheckpointApproval {
+  id            Int      @id @default(autoincrement())
+  aprovado      Boolean
+  observacoes   String?
+  dataAprovacao DateTime @default(now())
+  // Relação com o checkpoint
+  checkpoint   Checkpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  checkpointId Int
+  // Relação com o usuário que aprovou
+  user         User      @relation(fields: [userId], references: [id])
+  userId       Int
+  @@unique([checkpointId, userId])
+}
+
+// Modelo para histórico de mudanças da tarefa
+model TaskHistory {
+  id          Int      @id @default(autoincrement())
+  campo       String   // campo que foi alterado
+  valorAnterior String? // valor anterior
+  valorNovo   String? // novo valor
+  tipoMudanca String   // criado, atualizado, deletado, status_mudou, etc.
+  descricao   String?  // descrição da mudança
+  createdAt   DateTime @default(now())
+  // Relação com a tarefa
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      Int
+  // Relação com o usuário que fez a mudança
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+}
+
+// Modelo para lições aprendidas
+model TaskLesson {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descricao   String
+  categoria   String   // processo, tecnologia, comunicacao, etc.
+  impacto     String   // baixo, medio, alto
+  aplicabilidade String // tarefa_atual, proximas_tarefas, geral
+  createdAt   DateTime @default(now())
+  // Relação com a tarefa
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      Int
+  // Relação com o usuário que criou a lição
+  criadoPor   User     @relation("LessonCreator", fields: [criadoPor], references: [id])
+}

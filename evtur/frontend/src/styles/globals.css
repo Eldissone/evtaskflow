@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+header {
+    background-color: #fff;
+    box-shadow: 0 0 4px #333;
+    padding: 20px 50px;
+    position: fixed;
+    z-index: 999;
+    height: 80px;
+    width: 100%;
+    top: 0;
+}
+
+body {
+    align-items: center;
+}
+
+.section-principal {
+    display: flex;
+    flex-direction: column;
+    transform: translate(50%, 10%);
+    padding: 20px 0;
+    width: 50%;
+}
+
+.form-Content {
+    width: 100%;
+}   
+
+.Form-Task {
+    display: flex;
+    align-self: self-start;
+    left: 0;
+    width: 100%;
+}
+
+textarea {
+    max-height: 100px;
+    min-height: 100px;
+    height: 100px;
+}
+
+.Filtros {
+    display: flex;
+    align-self: self-start;
+    left: 0;
+}
+
+.sucess {
+   position: absolute;
+   top: 20%;
+   left: 30%;
+   z-index: 1;
+}
+
+.notificar {
+    right: 6rem;
+    top: 6rem;
+}
