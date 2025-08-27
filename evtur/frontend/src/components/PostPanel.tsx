@@ -169,7 +169,7 @@ export default function PostPanel() {
   return (
     <aside className="fixed left-0 top-20 h-full w-80 bg-white border-l border-gray-200 shadow-lg p-4 overflow-y-auto z-40 transition-transform duration-300">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-bold text-lg">Posts Recentes</h2>
+        <h2 className="font-bold text-lg">Feed de Posts</h2>
         <button
           className="text-gray-400 hover:text-blue-600 transition text-2xl font-bold ml-2"
           onClick={() => setShowPanel(false)}
@@ -182,7 +182,7 @@ export default function PostPanel() {
         className="bg-blue-600 text-white px-4 py-1 rounded mb-4"
         onClick={() => setShowForm(f => !f)}
       >
-        {showForm ? 'Ocultar formulário' : 'Novo Post'}
+        {showForm ? 'Fechar' : 'Novo'}
       </button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 space-y-2">
@@ -215,7 +215,7 @@ export default function PostPanel() {
           {error && <div className="text-red-500 text-sm">{error}</div>}
         </form>
       )}
-      <ul className="space-y-4">
+      <ul className="space-y-4 post-list">
         {(Array.isArray(posts) ? posts : []).map(post => (
           <li key={post.id} className="border-b pb-2">
             <div className="font-semibold text-blue-700">{post.title}</div>

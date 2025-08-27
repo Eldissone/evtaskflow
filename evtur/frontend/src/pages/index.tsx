@@ -400,7 +400,7 @@ export default function Home() {
 
                     </header>
                     <FeedSidebar events={feedEvents} />
-                    <div className="section-principal min-h-screen bg-gray-100 p-4 pt-24 mr-80">
+                    <div className="section-principal bg-gray-100 p-4 mr-0">
                         <div className="flex justify-end mb-4">
                             <button
                                 onClick={() => setShowForm(true)}
