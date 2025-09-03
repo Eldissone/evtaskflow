@@ -37,6 +37,18 @@ BACKEND_URL=http://localhost:3001
 # URL pública exposta no browser (precisa começar com NEXT_PUBLIC_)
 NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 
+ou 
+# Conexão por variáveis separadas (forma 2)
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=TaskFlow
+DB_USER=TaskFlow_user
+DB_PASS=TaskFlow_pass
+
+JWT_SECRET=sua_chave_secreta_super_segura
+
+e roda: docker-compose up --build
+
 
 ## ▶️ Frontend
 
