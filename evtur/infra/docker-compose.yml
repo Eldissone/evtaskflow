@@ -1,33 +1,56 @@
-version: '3.8'
 services:
   backend:
     build:
       context: ..
       dockerfile: infra/Dockerfile.backend
+    container_name: taskflow-backend
     env_file:
       - ../backend/.env
     ports:
-      - '3001:3001'
+      - "3001:3001"
     depends_on:
       - db
+    networks:
+      - taskflow-net
+    command: sh -c "npx prisma migrate deploy && npm run start"
+
   frontend:
     build:
       context: ..
       dockerfile: infra/Dockerfile.frontend
+    container_name: taskflow-frontend
     ports:
-      - '3000:3000'
-  
+      - "3000:3000"
+    environment:
+      # 🔹 Usado pelo Next.js em rotas API (SSR, rodando dentro do container)
+      BACKEND_URL: http://backend:3001
+
+      # 🔹 Usado pelo navegador (cliente acessando via host/local)
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - taskflow-net
+
   db:
     image: postgres:15
+    container_name: taskflow-db
     restart: always
     environment:
       POSTGRES_DB: TaskFlow
       POSTGRES_USER: TaskFlow_user
       POSTGRES_PASSWORD: TaskFlow_pass
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../infra/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - taskflow-net
+
 volumes:
-  pgdata: 
+  pgdata:
+
+networks:
+  taskflow-net:
+    driver: bridge
